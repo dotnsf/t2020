@@ -1,0 +1,23 @@
+{
+    "name": "t2020",
+    "version": "0.0.1",
+    "scripts": {
+        "start": "node app.js"
+    },
+    "dependencies": {
+        "@cloudant/cloudant": "^3.0.1",
+        "basic-auth-connect": "1.0.x",
+        "body-parser": "^1.19.0",
+        "ejs": "2.5.5",
+        "express": "4.17.x",
+        "fs": "~0.0.1",
+        "i18n": "^0.8.4",
+        "multer": "1.1.x",
+        "qrcode": "^1.4.4",
+        "uuid": "3.3.2"
+    },
+    "repository": {},
+    "engines": {
+        "node": "10.x"
+    }
+}

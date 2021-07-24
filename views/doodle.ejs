@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<title><%= doodle.title %></title>
+<script type="text/javascript" src="//code.jquery.com/jquery-2.2.4.min.js"></script>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet"/>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+<link href="//use.fontawesome.com/releases/v5.8.1/css/all.css" rel="stylesheet"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<link rel="shortcut icon" href="/icon.png" type="image/png"/>
+<link rel="icon" href="/icon.png" type="image/png"/>
+<link rel="apple-touch-icon" href="/icon.png"/>
+
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="T2020"/>
+
+<!-- // OGP tags -->
+<meta property="og:title" content="T2020"/>
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://t2020.mybluemix.net/doodle/<%= id %>"/>
+<meta property="og:image" content="https://t2020.mybluemix.net/attachment/<%= id %>"/>
+<meta property="og:site_name" content="T2020 - <%= __('common.appdesc') %>"/>
+<meta property="og:description" content="T2020 : <%= doodle.title %>"/>
+<!-- OGP tags // -->
+
+<!-- // Twitter Card -->
+<meta property="twitter:card" content="summary"/>
+<meta property="twitter:site" content="@dotnsf"/>
+<meta property="twitter:creator" content="@dotnsf"/>
+<meta property="twitter:url" content="https://t2020.mybluemix.net/doodle/<%= id %>"/>
+<meta property="twitter:image" content="https://t2020.mybluemix.net/attachment/<%= id %>"/>
+<meta property="twitter:title" content="T2020 - <%= __('common.appdesc') %>"/>
+<meta property="twitter:description" content="T2020 : <%= doodle.title %>"/>
+<!-- Twitter Card // -->
+
+<style type="text/css">
+html, body{
+  text-align: center;
+  background-color: #fafafa;
+  font-size: 20px;
+  color: #333;
+}
+.hide{
+  display: none;
+}
+</style>
+</head>
+<body>
+  <!-- //action buttons -->
+  <div style="text-align: right">
+    <ul class="nav navbar-nav">   
+     <li class="nav-item" id="share_buttons">
+        <!-- twitter -->
+        <a class="navlink" id="share_twitter" title="<%= __('common.doodle.share_twitter.title') %>" href="https://twitter.com/share?url=https://t2020.mybluemix.net/doodle/<%= id %>&text=%20<%= doodle.title %>&hashtags=t2020" target="_blank">
+          <img src="/share_twitter.png"/>
+        </a>
+        <!-- facebook -->
+        <a class="navlink" id="share_facebook" title="<%= __('common.doodle.share_facebook.title') %>" href="https://www.facebook.com/share.php?u=https://t2020.mybluemix.net/doodle/<%= id %>" onclick="window.open(this.href, 'FBwindow', 'width=650,height=450,menubar=no,toolbar=no,scrollbars=yes'); return false;">
+          <img src="/share_facebook.png"/>
+        </a>
+        <!-- line -->
+        <a class="navlink" id="share_line" title="<%= __('common.doodle.share_line.title') %>" href="https://social-plugins.line.me/lineit/share?url=https://t2020.mybluemix.net/doodle/<%= id %>" onclick="window.open(this.href, 'Linewindow', 'width=650,height=450,menubar=no,toolbar=no,scrollbars=yes'); return false;">
+          <img src="/share_line.png"/>
+        </a>
+        <!-- QRCode -->
+        <a class="navlink" id="share_qrcode" title="" href="#">
+          <button class="btn btn-secondary btn-xs py-0" onClick="qrCode('<%= doodle._id %>');"><i class="fas fa-qrcode"></i></button>
+        </a>
+      </li>
+    </ul>
+  </div>
+  <!-- action buttons// -->
+
+  <!-- //navi -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="navbar-header">
+      <a class="btn btn-primary" href="/"><%= __('common.wanttotry') %></a>
+    </div>
+  </nav>
+  <!-- navi// -->
+
+
+<div class="container" id="dummy" style="position: relative; top: 20px; text-align: right">
+</div>
+
+<div class="container" id="doodle" style="position: relative: top: 20px;">
+  <img src="/attachment/<%= id %>" title="<%= doodle.title %>" width="80%"/>
+</div>
+
+<div class="container" id="title" style="position: relative; top: 20px;">
+  <h3><%= doodle.title %></h3>
+</div>
+
+<div class="container" id="dt" style="position: relative; top: 20px;">
+  <div id="datetime" style="text-align: right">
+  </div>
+</div>
+
+<div class="modal bd-example-modal-lg fade" id="qrcodeModal" tabindex="-1" role="dialog" aria-labbelledby="qrcodeModal" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="qrcodeModalLabel"><%= doodle.title %></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="qrcodemodal-body">
+        <img id="qrcode_img" width="90%"/>
+      </div>
+      <div class="modal-footer btn-center">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="hide">
+  <canvas id="canvas" width="32" height="32"></canvas>
+</div>
+
+<script>
+$(function(){
+  var ts = parseInt( '<%= doodle.timestamp %>' );
+  var dt = timestamp2datetime( ts );
+  $('#datetime').html( dt );
+
+  var image_uuid = '<%= doodle.uuid %>';
+  var your_uuid = getUUID();
+  if( your_uuid && your_uuid == image_uuid ){
+    //var edit_btn = '<button class="btn btn-warning btn-xs" onClick="editDoodle(\'<%= doodle._id %>\');"><%= __('common.doodle.edit') %></button>';
+    //$('#dummy').html( edit_btn );
+    var edit_button = '<a class="navlink" href="#">'
+      + '<button class="btn btn-warning btn-xs py-0" onClick="editDoodle(\'<%= doodle._id %>\');"><i class="fas fa-edit"></i></button>'
+      + '</a>';
+    $('#share_buttons').append( edit_button );
+  }
+  
+  //. #8
+  var img = new Image();
+  img.src = '/attachment/<%= id %>';
+  img.onload = () => {
+    var canvas = document.getElementById( 'canvas' );
+    if( !canvas || !canvas.getContext ){
+      return false;
+    }
+    var ctx = canvas.getContext( '2d' );
+    ctx.drawImage( img, 0, 0, canvas.width, canvas.height );
+  };
+});
+
+function editDoodle( id ){
+  location.href = '/?id=' + id;
+}
+
+function timestamp2datetime( ts ){
+  if( ts ){
+    var dt = new Date( ts );
+    var yyyy = dt.getFullYear();
+    var mm = dt.getMonth() + 1;
+    var dd = dt.getDate();
+    var hh = dt.getHours();
+    var nn = dt.getMinutes();
+    var ss = dt.getSeconds();
+    var datetime = yyyy + '-' + ( mm < 10 ? '0' : '' ) + mm + '-' + ( dd < 10 ? '0' : '' ) + dd
+      + ' ' + ( hh < 10 ? '0' : '' ) + hh + ':' + ( nn < 10 ? '0' : '' ) + nn + ':' + ( ss < 10 ? '0' : '' ) + ss;
+    return datetime;
+  }else{
+    return "";
+  }
+}
+
+function getUUID(){
+  //. Cookie の値を調べる
+  var did = null;
+  cookies = document.cookie.split(";");
+  for( var i = 0; i < cookies.length; i ++ ){
+    var str = cookies[i].split("=");
+    var une = unescape( str[0] );
+    if( une == " deviceid" || une == "deviceid" ){
+      did = unescape( unescape( str[1] ) );
+    }
+  }
+
+  return did;
+}
+
+function str2bytearray( str ){
+  var arr = [];
+  for( var i = 0; i < str.length; i ++ ){
+    var cc = str.charCodeAt( i );
+    var c1 = Math.floor( cc / 256 );
+    var c2 = cc % 256;
+    arr.push( c2 );
+    arr.push( c1 );
+  }
+
+  return arr;
+}
+
+function qrCode( id ){
+  //console.log( 'qrCode: id = ' + id );
+  var canvas = document.getElementById( 'canvas' );
+  if( !canvas || !canvas.getContext ){
+    return false;
+  }
+  var ctx = canvas.getContext( '2d' );
+
+  //. タイトル
+  //var title = 'My Work'; //'<%= doodle.title %>';
+  /*
+  var dt = new Date( <%= doodle.timestamp %> );
+  var yyyy = dt.getFullYear();
+  var mm = dt.getMonth() + 1;
+  var dd = dt.getDate();
+  var hh = dt.getHours();
+  var nn = dt.getMinutes();
+  var ss = dt.getSeconds();
+  var title = yyyy + ( mm < 10 ? '0' : '' ) + mm + ( dd < 10 ? '0' : '' ) + dd
+    + ' ' + ( hh < 10 ? '0' : '' ) + hh + ( nn < 10 ? '0' : '' ) + nn + ( ss < 10 ? '0' : '' ) + ss;
+    */
+  var title = '<%= doodle.title %>';
+
+  //. 作者
+  var author = 'T2020';
+
+  //. Town
+  var town = 'My Town';
+
+  //. カラーパレット
+  var color_palette = [
+    146,  //. transparent #eeeeee(#cccccc)
+    159,  //. black       #000000
+    145,  //. white       #ffffff
+    5,    //. red         #ff0000
+    86,   //. blue        #0000ff
+    95,   //. green       #00ff00
+    68,   //. yellow      #ffff00
+    122,  //. cyan        #00ffff
+    41,   //. magenta     #ff00ff
+    153,  //. gray        #808080
+    47,   //. pink        #ef8f9c
+    30,   //. beige       #ead2ad
+    59,   //. brown       #7c6035
+    111,  //. dummy
+    112   //. dummy
+  ];
+
+  //. カラーパレット変換テーブル
+  var color_palette_table = [];
+  for( var i = 0; i < 16; i ++ ){
+    for( var j = 0; j < 9; j ++ ){
+      var v = 16 * i + j;
+      color_palette_table.push( v );
+    }
+  }
+  for( var i = 0; i < 15; i ++ ){
+    var v = 16 * i + 15;
+    color_palette_table.push( v );
+  }
+
+  //. 画像データ
+  var imgdata = [];
+  var imagedata = ctx.getImageData( 0, 0, 32, 32 );
+  for( var i = 0; i < imagedata.height; i ++ ){
+    for( var j = 0; j < imagedata.width; j += 2 ){
+      var idx = ( j + i * imagedata.width ) * 4;
+
+  		var r1 = imagedata.data[idx];
+  		var g1 = imagedata.data[idx+1];
+      var b1 = imagedata.data[idx+2];
+      var a1 = imagedata.data[idx+3];
+      var color_index1 = getColorIndex( r1, g1, b1, a1 );
+
+  		var r2 = imagedata.data[idx+4];
+  		var g2 = imagedata.data[idx+5];
+      var b2 = imagedata.data[idx+6];
+      var a2 = imagedata.data[idx+7];
+      var color_index2 = getColorIndex( r2, g2, b2, a2 );
+
+      var idx = color_index2 * 16 + color_index1;
+      imgdata.push( idx );
+    }
+  }
+
+  if( color_palette && imgdata ){
+    var data = [];
+
+    //. Title
+    var titlearray = str2bytearray( title );
+    for( var i = 0; i < titlearray.length || i < 42; i ++ ){
+      if( i < 42 ){
+        if( i < titlearray.length ){
+          var c = titlearray[i];
+          data.push( c );
+        }else{
+          data.push( 0 );
+        }
+      }
+    }
+
+    //. *1, *2
+    data.push( 23 );
+    data.push( 146 );
+
+    //. Author
+    for( var i = 0; i < author.length || i < 9; i ++ ){
+      if( i < 9 ){
+        if( i < author.length ){
+          var c = author.charCodeAt( i );
+          data.push( c );
+        }else{
+          data.push( 0 );
+        }
+        data.push( 0 );
+      }
+    }
+
+    //. *12, *13, *3, *4
+    data.push( 1 );
+    data.push( 0 );
+    data.push( 216 );
+    data.push( 144 );
+
+    //. Town
+    for( var i = 0; i < town.length || i < 9; i ++ ){
+      if( i < 9 ){
+        if( i < town.length ){
+          var c = town.charCodeAt( i );
+          data.push( c );
+        }else{
+          data.push( 0 );
+        }
+        data.push( 0 );
+      }
+    }
+
+    //. *14, *15, *5, *6
+    data.push( 0 );
+    data.push( 0 );
+    data.push( 1 );
+    data.push( 2 );
+
+    //. Color Pallete
+    for( var i = 0; i < color_palette.length; i ++ ){
+      data.push( color_palette_table[color_palette[i]-1] );
+    }
+
+    //. *7, *8, *9, *10, *11
+    data.push( 198 );
+    data.push( 0 );
+    data.push( 9 );
+    data.push( 0 );
+    data.push( 0 );
+
+    //. Palette data
+    for( var i = 0; i < imgdata.length; i ++ ){
+      data.push( imgdata[i] );
+    }
+
+    /* モード１で作られてしまう
+    //. https://www.npmjs.com/package/qrcode#api
+    QRCode.toCanvas( document.getElementById( 'qrcode' ), data, function( err ){
+      if( err ){
+        console.log( err );
+      }else{
+        $('#qrcodeModal').modal();
+      }
+    });
+    */
+
+    //. 結果を blob で受け取るため、XMLHttpRequest で送信
+    //. https://qiita.com/Yarimizu14/items/f56123c738f12ad1844a
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function(){
+      if( this.readyState == 4 && this.status == 200 ){
+        var data = this.response;
+        var reader = new FileReader();
+        reader.onloadend = function(){
+          var qrcode_img = document.getElementById( 'qrcode_img' );
+          qrcode_img.src = reader.result;
+          $('#qrcodeModal').modal();
+        }
+        reader.readAsDataURL( data );
+      }
+    }
+    xhr.open( 'POST', '/qrcode' );
+    xhr.responseType = 'blob';
+    xhr.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+    xhr.send( 'data=' + data );
+  }
+}
+
+function getColorIndex( rr, gg, bb, aa ){
+  var idx = -1;  //. 0-12 ただし背景色は 15 ？
+
+  if( rr == 0 && gg == 0 & bb == 0 ){
+    //. #11
+    //. 黒だとしたら 1, 背景色だったら 15 または 0 にするべき
+    if( aa == 0 ){
+      idx = 0;     //. 15 にするとおかしくなってしまうので 0 とする
+    }else{
+      idx = 1;
+    }
+  }else{
+    /* この 13 色中のどの色に近いか、を調べて、インデックスを返す
+    //. カラーパレット
+    var color_palette = [  //rrggbb
+      146,  //. transparent #eeeeee
+      159,  //. black       #000000
+      145,  //. white       #ffffff
+      5,    //. red         #ff0000
+      86,   //. blue        #0000ff
+      95,   //. green       #00ff00
+      68,   //. yellow      #ffff00
+      122,  //. cyan        #00ffff
+      41,   //. magenta     #ff00ff
+      153,  //. gray        #808080
+      47,   //. pink        #ef8f9c
+      30,   //. beige       #ead2ad
+      59,   //. brown       #7c6035
+      111,  //. dummy
+      112   //. dummy
+    ];
+    */
+    var colors = [
+      { rr: 0xee, gg: 0xee, bb: 0xee },
+      { rr: 0x00, gg: 0x00, bb: 0x00 },
+      { rr: 0xff, gg: 0xff, bb: 0xff },
+      { rr: 0xff, gg: 0x00, bb: 0x00 },
+      { rr: 0x00, gg: 0x00, bb: 0xff },
+      { rr: 0x00, gg: 0xff, bb: 0x00 },
+      { rr: 0xff, gg: 0xff, bb: 0x00 },
+      { rr: 0x00, gg: 0xff, bb: 0xff },
+      { rr: 0xff, gg: 0x00, bb: 0xff },
+      { rr: 0x80, gg: 0x80, bb: 0x80 },
+      { rr: 0xef, gg: 0x8f, bb: 0x9c },
+      { rr: 0xea, gg: 0xd2, bb: 0xad },
+      { rr: 0x7c, gg: 0x60, bb: 0x35 }
+    ];
+
+    //. ３次元ユークリッド距離で比較
+    var mx = 255 * 255 * 3;
+    for( var i = 0; i < colors.length; i ++ ){
+      var d = ( colors[i].rr - rr ) * ( colors[i].rr - rr )
+        + ( colors[i].gg - gg ) * ( colors[i].gg - gg )
+        + ( colors[i].bb - bb ) * ( colors[i].bb - bb );
+      if( d < mx ){
+        idx = i;
+        mx = d;
+      }
+    }
+  }
+
+  return idx;
+}
+</script>
+</body>
+</html>

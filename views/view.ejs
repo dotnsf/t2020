@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<title><%= __('common.header.title') %></title>
+<script type="text/javascript" src="//code.jquery.com/jquery-2.2.4.min.js"></script>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet"/>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="//cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11/datatables.min.css"/> 
+<script src="//cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11/datatables.min.js"></script>
+<link href="//use.fontawesome.com/releases/v5.8.1/css/all.css" rel="stylesheet"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<link href="/colorbox.css" rel="stylesheet"/>
+<script src="/jquery.colorbox-min.js"></script>
+
+<link rel="shortcut icon" href="/icon.png" type="image/png"/>
+<link rel="icon" href="/icon.png" type="image/png"/>
+<link rel="apple-touch-icon" href="/icon.png"/>
+
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="T2020"/>
+
+<!-- // OGP tags -->
+<meta property="og:title" content="T2020"/>
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://t2020.mybluemix.net/"/>
+<meta property="og:image" content="https://t2020.mybluemix.net/icon.png"/>
+<meta property="og:site_name" content="T2020 - <%= __('common.appdesc') %>"/>
+<meta property="og:description" content="T2020 : お絵描き共有サービス"/>
+<!-- OGP tags // -->
+
+<!-- // Twitter Card -->
+<meta property="twitter:card" content="summary"/>
+<meta property="twitter:site" content="@dotnsf"/>
+<meta property="twitter:creator" content="@dotnsf"/>
+<meta property="twitter:url" content="https://t2020.mybluemix.net/"/>
+<meta property="twitter:image" content="https://t2020.mybluemix.net/icon.png"/>
+<meta property="twitter:title" content="T2020 - <%= __('common.appdesc') %>"/>
+<meta property="twitter:description" content="T2020 : お絵描き共有サービス"/>
+<!-- Twitter Card // -->
+
+<style type="text/css">
+html, body{
+  text-align: center;
+  background-color: #fafafa;
+  font-size: 20px;
+  color: #333;
+}
+th{
+  text-align: center;
+}
+.w_0{
+  background-color: #fcc;
+}
+.w_6{
+  background-color: #ccf;
+}
+a{
+  text-decoration: none;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div style="text-align: left;">
+    <a class="btn btn-primary" href="/"><%= __('common.wanttotry') %></a>
+  </div>
+
+  <h1><a target="_blank" href="/">T2020</a></h1>
+  <table class="table">
+    <tr>
+      <td><a href="#" onClick="prevMonth()">&lt;&lt;</a></td>
+      <td>
+        <h2><span id="title_y"></span> / <span id="title_m"></span></h2>
+      </td>
+      <td><a href="#" onClick="nextMonth()">&gt;&gt;</a></td>
+    </tr>
+  </table>
+</div>
+
+<div class="container">
+  <table class="table table-bordered" id="view_table">
+    <thead>
+      <tr><th class="w_0">Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th class="w_6">Sat</th></tr>
+    </thead>
+    <tbody id="view_table_body">
+    </tbody>
+  </table>
+</div>
+
+<div style="display:none;">
+  <div id="box_content">
+  </div>
+</div>
+
+<div class="modal bd-example-modal-lg fade" id="doodleModal" tabindex="-1" role="dialog" aria-labbelledby="doodleModal" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="doodleModalLabel"></h4>
+      </div>
+      <div class="modal-body" id="doodlemodal-body">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var y = <%= y %>; 
+var m = <%= m %>; 
+var uid = '<%= id %>';
+$(function(){
+  if( y && m ){
+    $('#title_y').html( y );
+    $('#title_m').html( m );
+
+    //. 該当月が何日まであるか
+    var days = getDaysOfMonth( y, m );
+    //. 該当月の１日の曜日を求める
+    var dt = new Date( y, m - 1, 1 );
+    var day = dt.getDay(); //. 0:Sun, 1:Mon, ..
+    var tr = '<tr>';
+    //var ids = [];
+    for( var i = 0; i < day; i ++ ){
+      tr += '<td class="w_' + i + '">&nbsp;</td>';
+    }
+    for( var i = 1; i <= days; i ++ ){
+      tr += '<td class="w_' + ( ( day + i - 1 ) % 7 ) + '">' + i;
+<% for( var j = 0; j < images.length; j ++ ){ %>
+      if( i == <%= images[j].d %> ){
+        tr += '<br/><%= images[j].title %>';
+        //. #19
+        tr += '<br/><a href="#" onClick="showModal(\'<%= images[j].title %>\',\'<%= images[j]._id %>\')" id="box_content_<%= images[j]._id %>"><img src="/attachment/<%= images[j]._id %>" width="100"/></a>';
+        //ids.push( '<%= images[j]._id %>' );
+      }
+<% } %>
+      tr += '</td>';
+      if( ( day + i ) % 7 == 0 ){
+        tr += '</tr>';
+        $('#view_table_body').append( tr );
+        /*
+        ids.forEach( function( id ){
+			    $('#box_content_'+id).colorbox({ inline: true, transition: 'none', width: "90%", height: "90%", onOpen: function(){ zoomImage( id ); } });
+        });
+        ids = [];
+        */
+        tr = '<tr>';
+      }
+    }
+
+    tr += '</tr>';
+    $('#view_table_body').append( tr );
+    /*
+    ids.forEach( function( id ){
+		  $('#box_content_'+id).colorbox({ inline: true, transition: 'none', width: "90%", height: "90%", onOpen: function(){ zoomImage( id ); } });
+    });
+    */
+  }
+});
+
+function deleteImage( id ){
+  if( window.confirm( "<%= __('common.deleteimage.confirm1') %>" + id + "<%= __('common.deleteimage.confirm2') %>" ) ){
+    $.ajax({
+      type: "DELETE",
+      url: "./image/" + id,
+      success: function( data ){
+        location.href = '/view';
+      },
+      error: function( jqXHR, textStatus, errorThrown ){
+        console.log( textStatus + " : " + errorThrown );
+      }
+    });
+  }
+}
+
+function timestamp2datetime( ts ){
+  if( ts ){
+    var dt = new Date( ts );
+    var yyyy = dt.getFullYear();
+    var mm = dt.getMonth() + 1;
+    var dd = dt.getDate();
+    var hh = dt.getHours();
+    var nn = dt.getMinutes();
+    var ss = dt.getSeconds();
+    var datetime = yyyy + '-' + ( mm < 10 ? '0' : '' ) + mm + '-' + ( dd < 10 ? '0' : '' ) + dd
+      + ' ' + ( hh < 10 ? '0' : '' ) + hh + ':' + ( nn < 10 ? '0' : '' ) + nn + ':' + ( ss < 10 ? '0' : '' ) + ss;
+    return datetime;
+  }else{
+    return "";
+  }
+}
+
+function getDaysOfMonth( y, m ){
+  var ms = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
+  var r = ms[m-1];
+
+  if( isLeapYear( y ) && m == 2 ){
+    r = 29;
+  }
+
+  return r;
+}
+
+function isLeapYear( y ){
+  var b = false;
+  if( y % 4 == 0 ){
+    b = true;
+    if( y % 100 == 0 ){
+      b = true;
+      if( y % 400 == 0 ){
+        b = false;
+      }
+    }
+  }
+
+  return b;
+}
+
+function zoomImage( id ){
+  $('#box_content').html( '<img id="zoom_image" socket_id="' + id + '" src="/attachment/' + id + '"/>' );
+}
+
+function prevMonth(){
+  m --;
+  if( m < 1 ){
+    m = 12;
+    y --;
+  }
+
+  window.location.href = '/view?id=' + uid + '&y=' + y + '&m=' + m;
+}
+
+function nextMonth(){
+  m ++;
+  if( m > 12 ){
+    m = 1;
+    y ++
+  }
+
+  window.location.href = '/view?id=' + uid + '&y=' + y + '&m=' + m;
+}
+
+//. #19
+function showModal( title, id ){
+  $('#doodleModalLabel').html( title ); 
+  $('#doodlemodal-body').html( '<a target="_blank" href="/doodle/' + id + '"><img src="/attachment/' + id + '" width="100%"/></a>' ); 
+  $('#doodleModal').modal();
+}
+</script>
+</body>
+</html>

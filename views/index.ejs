@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<title><%= __('common.header.title') %></title>
+<!-- #6
+<script src="//cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+-->
+<script type="text/javascript" src="//code.jquery.com/jquery-2.2.4.min.js"></script>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet"/>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+<link href="//use.fontawesome.com/releases/v5.8.1/css/all.css" rel="stylesheet"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<link rel="shortcut icon" href="/icon.png" type="image/png"/>
+<link rel="icon" href="/icon.png" type="image/png"/>
+<link rel="apple-touch-icon" href="/icon.png"/>
+
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="T2020"/>
+
+<!-- // OGP tags -->
+<meta property="og:title" content="T2020"/>
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://t2020.mybluemix.net/"/>
+<meta property="og:image" content="https://t2020.mybluemix.net/icon.png"/>
+<meta property="og:site_name" content="T2020 - <%= __('common.appdesc') %>"/>
+<meta property="og:description" content="T2020 : お絵描き共有サービス"/>
+<!-- OGP tags // -->
+
+<!-- // Twitter Card -->
+<meta property="twitter:card" content="summary"/>
+<meta property="twitter:site" content="@dotnsf"/>
+<meta property="twitter:creator" content="@dotnsf"/>
+<meta property="twitter:url" content="https://t2020.mybluemix.net/"/>
+<meta property="twitter:image" content="https://t2020.mybluemix.net/icon.png"/>
+<meta property="twitter:title" content="T2020 - <%= __('common.appdesc') %>"/>
+<meta property="twitter:description" content="T2020 : お絵描き共有サービス"/>
+<!-- Twitter Card // -->
+
+<style type="text/css">
+html, body{
+  text-align: center;
+  background-color: #fafafa;
+  font-size: 20px;
+  color: #333;
+}
+#mycanvas{
+  border: 1px solid #333;
+}
+#myimg{
+  position: absolute;
+  top: -2000px;
+}
+</style>
+</head>
+<body>
+<div id="title_div">
+  <table class="table">
+    <tr><td>
+      <input type="text" class="form-control" id="title" name="title" placeholder="<%= __('common.title') %>"/>
+    </td><td>
+      <!--
+      <a href="#" class="btn btn-xs btn-info" data-toggle="modal" data-target="#historyModal" id="history_btn"><%= __('common.history') %></a>
+      -->
+      <a href="#" class="btn btn-xs btn-info" id="history_btn"><%= __('common.history') %></a>
+    </td></tr>
+  </table>
+</div>
+
+<select id="select_color" name="select_color">
+  <option style="color:black;" value="transparent"><%= __('common.color.transparent') %></option>
+  <option style="color:black;" value="black" selected="selected"><%= __('common.color.black') %></option>
+  <option style="color:lightgray;" value="white"><%= __('common.color.white') %></option>
+  <option style="color:red;" value="red"><%= __('common.color.red') %></option>
+  <option style="color:blue;" value="blue"><%= __('common.color.blue') %></option>
+  <option style="color:green;" value="green"><%= __('common.color.green') %></option>
+  <option style="color:yellow;" value="yellow"><%= __('common.color.yellow') %></option>
+  <option style="color:#FFA500;" value="#FFA500"><%= __('common.color.orange') %></option>
+  <option style="color:cyan;" value="cyan"><%= __('common.color.cyan') %></option>
+  <option style="color:magenta;" value="magenta"><%= __('common.color.magenta') %></option>
+  <option style="color:gray;" value="gray"><%= __('common.color.gray') %></option>
+  <option style="color:#ef8f9c;" value="#ef8f9c"><%= __('common.color.pink') %></option>
+  <option style="color:#ead2ad;" value="#ead2ad"><%= __('common.color.beige') %></option>
+  <option style="color:#7c6035;" value="#7c6035"><%= __('common.color.brown') %></option>
+</select>
+
+<select id="select_linewidth" name="select_linewidth">
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+  <option value="5" selected="selected">5</option>
+  <option value="6">6</option>
+  <option value="7">7</option>
+  <option value="8">8</option>
+  <option value="9">9</option>
+  <option value="10">10</option>
+  <option value="11">11</option>
+  <option value="12">12</option>
+  <option value="13">13</option>
+  <option value="14">14</option>
+  <option value="15">15</option>
+</select>
+
+<input type="button" class="btn btn-xs btn-secondary p-0" id="setbg_btn" value="<%= __('common.button.background') %>" onClick="setBG();"/>
+
+<a href="#" class="btn btn-xs btn-secondary btn-xs py-0" data-toggle="modal" data-target="#editModal" id="history_btn"><i class="fas fa-edit"></i></a>
+
+<div id="canvas_div">
+  <div id="cdiv"></div>
+
+  <input type="button" class="btn btn-xs" id="undo_btn" value="<" onClick="undo();" disabled="disabled"/>
+  <input type="button" class="btn btn-xs btn-warning" value="<%= __('common.button.reset') %>" onClick="resetCanvas();"/>
+  <input type="button" class="btn btn-xs btn-primary" id="save_btn" value="<%= __('common.button.save') %>" onClick="save();"/>
+  <input type="button" class="btn btn-xs" id="redo_btn" value=">" onClick="redo();" disabled="disabled"/>
+</div>
+
+<div class="modal bd-example-modal-lg fade" id="editModal" tabindex="-1" role="dialog" aria-labbelledby="editModal" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="editModalLabel"><%= __('common.edit') %></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="editmodal-body">
+        <%= __('common.datetime') %> : <input type="date" id="timestamp" value=""/>
+      </div>
+      <div class="modal-footer btn-center">
+        <!--
+        <button type="button" class="btn btn-danger btn-xs py-0" onClick="generateSiritori();"><%= __('common.migrate.button.siritori') %></button>
+        -->
+        <button type="button" class="btn btn-info btn-xs py-0" onClick="migrateFrom();"><i class="fas fa-file-export"></i></button>
+        <button type="button" class="btn btn-success btn-xs py-0" onClick="migrateTo();"><i class="fas fa-file-import"></i></button>
+<% if( doodle && doodle._id ){ %>
+        <!-- #15 -->
+        <button type="button" class="btn btn-danger btn-xs py-0" onClick="deleteImage('<%= doodle._id %>');"><i class="fas fa-trash"></i></button>
+<% } %>
+        <button type="button" class="btn" data-toggle="modal" onClick="editModalClose();">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal bd-example-modal-lg fade" id="historyModal" tabindex="-1" role="dialog" aria-labbelledby="historyModal" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="historyModalLabel"><%= __('common.history') %></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="historymodal-body">
+        <a id="calenderview" href="#"><%= __('common.calender') %></a><br/>or<br/>
+        <select id="history_select">
+        </select>
+      </div>
+      <div class="modal-footer btn-center">
+        <!--
+        <button type="button" class="btn btn-danger btn-xs py-0" onClick="generateSiritori();"><%= __('common.migrate.button.siritori') %></button>
+        -->
+        <!--
+        <button type="button" class="btn btn-info btn-xs py-0" onClick="migrateFrom();"><i class="fas fa-file-export"></i></button>
+        <button type="button" class="btn btn-success btn-xs py-0" onClick="migrateTo();"><i class="fas fa-file-import"></i></button>
+        -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="myimg_div">
+  <img id="myimg"/>
+</div>
+
+<script>
+//. t2020_message.png
+var t2020_img = new Image();
+t2020_img.src = '/t2020_message.png';
+
+var uuid = generateUUID();
+console.log( 'uuid = ' + uuid );
+$('#calenderview').prop( 'href', '/view?id=' + uuid );
+$('#history_btn').prop( 'href', '/view?id=' + uuid );
+$('#historyModalLabel').html( '<%= __('common.history') %> : ' + uuid );
+var o_id = null;
+var o_rev = null;
+
+var base_url = location.origin + '/';
+var undos = [];
+var redos = [];
+var stroke = null; //. { color: color, width: width, xys: [] }
+var backgroundcolor = null;
+
+$(function(){
+  //. ヒストリバック無効化
+  if( window.history && window.history.pushState ){
+    history.pushState( "nohb", null, null );
+    $(window).on( "popState", function( evt ){
+      if( !event.originalEvent.state ){
+        history.pushState( "nohb", null, null );
+        return;
+      }
+    });
+  }
+
+  init();
+});
+
+function init(){
+  if( uuid ){
+    $('#history_select').html( '' );
+    $.ajax({
+      url: './search/' + uuid,
+      type: 'GET',
+      success: function( result ){
+        $('#history_select').html( '<option value="">' + "<%= __('common.history.select') %>" + '</option>' );
+        if( result && result.status && result.images ){
+          result.images.forEach( function( image ){
+            //console.log( image );
+            var ts = parseInt( image.timestamp );
+            var dt = timestamp2datetime( ts );
+            var o = '<option value="' + image._id + '">' + (dt.split(' '))[0] + ' ' + image.title + '</option>';
+            $('#history_select').append( o );
+          });
+
+          $('#history_select').change( function(){
+            var v = $('#history_select').val();
+            if( v ){
+              window.location.href = '/doodle/' + v;
+            }
+          });
+        }
+      },
+      error: function( e0, e1, e2 ){
+        console.log( e1, e2 );
+      }
+    });
+<% if( doodle ){ %>
+    if( uuid == '<%= doodle.uuid %>' ){
+      $('#myimg').prop( 'src', '/attachment/<%= doodle._id %>' );
+      $('#title').val( '<%= doodle.title %>' );
+      o_id = '<%= doodle._id %>';
+      o_rev = '<%= doodle._rev %>';
+
+      //. #16
+      $('#timestamp').val( timestamp2datetime2('<%= doodle.timestamp %>') );
+    }
+<% } %>
+  }
+
+  $('#cdiv').html( '<canvas width="80%" height="50%" id="mycanvas"></canvas>' );
+
+  var canvas = document.getElementById( 'mycanvas' );
+  if( !canvas || !canvas.getContext ){
+    return false;
+  }
+  var ctx = canvas.getContext( '2d' );
+  //. マウスの座標を取得
+  var mouse = {
+    startX: 0,
+    startY: 0,
+    x: 0,
+    y: 0,
+    color: "black",
+    isDrawing: false
+  };
+  var borderWidth = 1;
+  canvas.addEventListener( "mousemove", function( e ){
+    //. マウスが動いたら座標値を取得
+    var rect = e.target.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left - borderWidth;
+    mouse.y = e.clientY - rect.top - borderWidth;
+
+    //. isDrawがtrueのとき描画
+    if( mouse.isDrawing ){
+      var color = $('#select_color').val();
+      if( color == 'transparent' ){
+        ctx.globalCompositeOperation = 'destination-out';
+      }else{
+        ctx.globalCompositeOperation = 'source-over';
+      }
+
+      ctx.beginPath();
+      ctx.lineWidth = parseInt( $('#select_linewidth').val() );
+      ctx.lineCap = 'round';
+      ctx.moveTo( mouse.startX, mouse.startY );
+      ctx.lineTo( mouse.x, mouse.y );
+      if( color != 'transparent' ){
+        ctx.strokeStyle = color;
+      }
+      ctx.stroke();
+      mouse.startX = mouse.x;
+      mouse.startY = mouse.y;
+
+      if( stroke ){
+        stroke.xys.push( [ mouse.x, mouse.y ] );
+      }
+    }
+  });
+  //. マウスを押したら、描画OK(myDrawをtrue)
+  canvas.addEventListener( "mousedown", function( e ){
+    mouse.isDrawing = true;
+    mouse.startX = mouse.x;
+    mouse.startY = mouse.y;
+
+    stroke = {};
+    stroke.color = $('#select_color').val();
+    stroke.width = parseInt( $('#select_linewidth').val() );
+    stroke.xys = [ [ mouse.x, mouse.y ] ];
+  });
+  //. マウスを上げたら、描画禁止(myDrawをfalse)
+  canvas.addEventListener( "mouseup", function( e ){
+    mouse.isDrawing = false;
+
+    if( stroke ){
+      undos.push( stroke );
+      $('#undo_btn').prop( 'disabled', false );
+      stroke = null;
+      redos = [];
+      $('#redo_btn').prop( 'disabled', true );
+    }
+  });
+  canvas.addEventListener( 'mouseleave', function( e ){
+    mouse.isDrawing = false;
+
+    if( stroke ){
+      undos.push( stroke );
+      $('#undo_btn').prop( 'disabled', false );
+      stroke = null;
+      redos = [];
+      $('#redo_btn').prop( 'disabled', true );
+    }
+  });
+
+  canvas.addEventListener( "touchmove", function( e ){
+    //. タッチが動いたら座標値を取得
+    var t = e.changedTouches[0];
+    var rect = e.target.getBoundingClientRect();
+    //mouse.x = e.pageX - rect.left - borderWidth;
+    //mouse.y = e.pageY - rect.top - borderWidth;
+    mouse.x = ( isAndroid() ? t.pageX : e.pageX ) - rect.left - borderWidth;
+    mouse.y = ( isAndroid() ? t.pageY : e.pageY ) - rect.top - borderWidth;
+
+    //. isDrawがtrueのとき描画
+    if( mouse.isDrawing ){
+      var color = $('#select_color').val();
+      if( color == 'transparent' ){
+        ctx.globalCompositeOperation = 'destination-out';
+      }else{
+        ctx.globalCompositeOperation = 'source-over';
+      }
+
+      ctx.beginPath();
+      ctx.lineWidth = parseInt( $('#select_linewidth').val() );
+      ctx.lineCap = 'round';
+      ctx.moveTo( mouse.startX, mouse.startY );
+      ctx.lineTo( mouse.x, mouse.y );
+      if( color != 'transparent' ){
+        ctx.strokeStyle = color;
+      }
+      ctx.stroke();
+      mouse.startX = mouse.x;
+      mouse.startY = mouse.y;
+
+      if( stroke ){
+        stroke.xys.push( [ mouse.x, mouse.y ] );
+      }
+    }
+  });
+  //. タッチしたら、描画OK(myDrawをtrue)
+  canvas.addEventListener( "touchstart", function( e ){
+    var t = e.changedTouches[0];
+    var rect = t.target.getBoundingClientRect();
+    mouse.isDrawing = true;
+    mouse.startX = t.pageX - rect.left - borderWidth;
+    mouse.startY = t.pageY - rect.top - borderWidth;
+
+    stroke = {};
+    stroke.color = $('#select_color').val();
+    stroke.width = parseInt( $('#select_linewidth').val() );
+    stroke.xys = [ [ mouse.startX, mouse.startY ] ];
+  });
+  //. タッチを上げたら、描画禁止(myDrawをfalse)
+  canvas.addEventListener( "touchend", function( e ){
+    mouse.isDrawing = false;
+
+    if( stroke ){
+      undos.push( stroke );
+      $('#undo_btn').prop( 'disabled', false );
+      stroke = null;
+      redos = [];
+      $('#redo_btn').prop( 'disabled', true );
+    }
+  });
+  canvas.addEventListener( 'touchcancel', function( e ){
+    mouse.isDrawing = false;
+
+    if( stroke ){
+      undos.push( stroke );
+      $('#undo_btn').prop( 'disabled', false );
+      stroke = null;
+      redos = [];
+      $('#redo_btn').prop( 'display', true );
+    }
+  });
+
+  //. Pointer Events
+  canvas.addEventListener( "pointermove", function( e ){
+    //. ポインターが動いたら座標値を取得
+    var t = e; //e.changedTouches[0];
+    var rect = e.target.getBoundingClientRect();
+    //mouse.x = e.pageX - rect.left - borderWidth;
+    //mouse.y = e.pageY - rect.top - borderWidth;
+    mouse.x = ( isAndroid() ? t.pageX : e.pageX ) - rect.left - borderWidth;
+    mouse.y = ( isAndroid() ? t.pageY : e.pageY ) - rect.top - borderWidth;
+
+    //. isDrawがtrueのとき描画
+    if( mouse.isDrawing ){
+      var color = $('#select_color').val();
+      if( color == 'transparent' ){
+        ctx.globalCompositeOperation = 'destination-out';
+      }else{
+        ctx.globalCompositeOperation = 'source-over';
+      }
+
+      ctx.beginPath();
+      ctx.lineWidth = parseInt( $('#select_linewidth').val() );
+      ctx.lineCap = 'round';
+      ctx.moveTo( mouse.startX, mouse.startY );
+      ctx.lineTo( mouse.x, mouse.y );
+      if( color != 'transparent' ){
+        ctx.strokeStyle = color;
+      }
+      ctx.stroke();
+      mouse.startX = mouse.x;
+      mouse.startY = mouse.y;
+
+      if( stroke ){
+        stroke.xys.push( [ mouse.x, mouse.y ] );
+      }
+    }
+  });
+  //. ポインターにタッチしたら、描画OK(myDrawをtrue)
+  canvas.addEventListener( "pointerdown", function( e ){
+    var t = e; //e.changedTouches[0];
+    var rect = t.target.getBoundingClientRect();
+    mouse.isDrawing = true;
+    mouse.startX = t.pageX - rect.left - borderWidth;
+    mouse.startY = t.pageY - rect.top - borderWidth;
+
+    stroke = {};
+    stroke.color = $('#select_color').val();
+    stroke.width = parseInt( $('#select_linewidth').val() );
+    stroke.xys = [ [ mouse.startX, mouse.startY ] ];
+  });
+  //. ポインターを上げたら、描画禁止(myDrawをfalse)
+  canvas.addEventListener( "pointerup", function( e ){
+    mouse.isDrawing = false;
+
+    if( stroke ){
+      undos.push( stroke );
+      $('#undo_btn').prop( 'disabled', false );
+      stroke = null;
+      redos = [];
+      $('#redo_btn').prop( 'disabled', true );
+    }
+  });
+
+  $('#select_color').change( function(){
+    var color = $(this).val();
+    if( color == 'white' ){
+      color = 'lightgray';
+    }else if( color == 'transparent' ){
+      color = 'black';
+    }
+    $(this).css( { 'color': color } );
+    $('#select_linewidth').css( { 'color': color } );
+    $('#setbg_btn').css( { 'background': color } );
+  });
+
+  //. リサイズ時に Canvas サイズを変更する
+  $(window).on( 'load resize', function(){
+    resized();
+  });
+
+  //. ダブルクリック時の拡大を抑制 -> 効果なし？
+  /*
+  canvas.on( 'dblclick', function( event ){
+    event.preventDefault();
+  });
+  */
+
+  //. スクロール禁止
+  /*
+  $(window).on('touchmove.noScroll', function( e ){
+    e.preventDefault();
+  });
+  */
+  var movefun = function( event ){
+    event.preventDefault();
+  }
+  window.addEventListener( 'touchmove', movefun, { passive: false } );
+}
+
+function resized(){
+  var browserWidth = window.innerWidth;
+  var browserHeight = window.innerHeight;
+  var canvas = document.getElementById( 'mycanvas' );
+  if( canvas && canvas.getContext ){
+    canvas.width = browserWidth * 0.8;
+    canvas.height = browserHeight * 0.6;
+  }
+
+  //. bg_image
+  var ctx = canvas.getContext( '2d' );
+  var sx = 0;
+  var sy = 0;
+  var sw = t2020_img.width;
+  var sh = t2020_img.height;
+  var dx = 0;
+  var dy = 0;
+  var dw = canvas.width;
+  var dh = canvas.height;
+  ctx.drawImage( t2020_img, sx, sy, sw, sh, dx, dy, dw, dh );
+
+<% if( doodle ){ %>
+  if( uuid == '<%= doodle.uuid %>' ){
+    var myimg = document.getElementById( 'myimg' );
+    ctx.drawImage( myimg, 0, 0 );
+  }
+<% } %>
+}
+
+function resetCanvas( no_reset_unredo ){
+  init();
+  resized();
+
+  if( !no_reset_unredo ){
+    undos = [];
+    redos = [];
+    backgroundcolor = null;
+  }
+}
+
+function isAndroid(){
+  return ( navigator.userAgent.indexOf( 'Android' ) > 0 );
+}
+
+function isMobileSafari(){
+  return ( navigator.userAgent.indexOf( 'Safari' ) > 0 && navigator.userAgent.indexOf( 'Mobile' ) > 0 );
+}
+
+function save(){
+  var canvas = document.getElementById( 'mycanvas' );
+  if( !canvas || !canvas.getContext ){
+    return false;
+  }
+  var ctx = canvas.getContext( '2d' );
+
+  //. タイトル
+  var title = $('#title').val();
+  if( !title ){ title = ''; }
+
+  //. 日時 #16
+  var timestamp = $('#timestamp').val();
+  if( !timestamp ){ 
+    timestamp = ( new Date() ).getTime(); 
+  }else{
+    //. timestamp の形式は？
+    //. タイムスタンプ出ない場合はタイムスタンプに変換する
+    var tmp = new Date( timestamp );
+    timestamp = tmp.getTime();
+  }
+
+  //. 画像データ
+  var png = canvas.toDataURL( 'image/png' );
+  png = png.replace( /^.*,/, '' );
+
+  //. バイナリ変換
+  var bin = atob( png );
+  var buffer = new Uint8Array( bin.length );
+  for( var i = 0; i < bin.length; i ++ ){
+    buffer[i] = bin.charCodeAt( i );
+  }
+  var blob = new Blob( [buffer.buffer], {
+    type: 'image/png'
+  });
+
+  //. フォームにして送信
+  console.log( 'Sending data... : ' + blob.size );
+  var formData = new FormData();
+  formData.append( 'image', blob );    //. <form enctype='multipart/formdata'><input name='image' type='file'/> ...
+  formData.append( 'timestamp', timestamp );
+  formData.append( 'title', title );
+  formData.append( 'uuid', uuid );
+  if( o_id && o_rev ){
+    formData.append( '_id', o_id );
+    formData.append( '_rev', o_rev );
+  }
+  $.ajax({
+    type: 'POST',
+    url: '/image',
+    data: formData,
+    contentType: false,
+    processData: false,
+    success: function( data, dataType ){
+      console.log( data );
+
+      var id = data.id;
+      location.href = './doodle/' + id;
+      //location.href = '/';
+    },
+    error: function( jqXHR, textStatus, errorThrown ){
+      console.log( textStatus + ': ' + errorThrown );
+    }
+  });
+}
+
+function undo(){
+  if( undos && undos.length > 0 ){
+    var last_stroke = undos.pop();
+    if( undos.length == 0 ){
+      $('#undo_btn').prop( 'disabled', true );
+    }
+    redos.push( last_stroke );
+    $('#redo_btn').prop( 'disabled', false );
+
+    redrawCanvas();
+  }
+}
+
+function redo(){
+  if( redos && redos.length > 0 ){
+    var last_stroke = redos.pop();
+    if( redos.length == 0 ){
+      $('#redo_btn').prop( 'disabled', true );
+    }
+    undos.push( last_stroke );
+    $('#undo_btn').prop( 'disabled', false );
+
+    redrawCanvas();
+  }
+}
+
+function setBG(){
+  var color = $('#select_color').val();
+  if( color ){
+    if( color != 'transparent' ){
+      backgroundcolor = color;
+    }else{
+      backgroundcolor = null;
+    }
+    redrawCanvas();
+  }
+}
+
+function redrawCanvas(){
+  if( undos && undos.length >= 0 ){
+    resetCanvas( true );
+
+    if( backgroundcolor ){
+      var canvas = document.getElementById( 'mycanvas' );
+      if( !canvas || !canvas.getContext ){
+        return false;
+      }
+      var ctx = canvas.getContext( '2d' );
+
+      //. 全体をベタ塗り
+      ctx.beginPath();
+      ctx.fillStyle = backgroundcolor; //"rgb( 255, 255, 255 )";
+      ctx.fillRect( 0, 0, canvas.width, canvas.height );
+      ctx.stroke();
+    }
+
+    for( var i = 0; i < undos.length; i ++ ){
+      var stroke = undos[i];
+
+      for( var j = 1; j < stroke.xys.length; j ++ ){
+        var canvas = document.getElementById( 'mycanvas' );
+        if( !canvas || !canvas.getContext ){
+          return false;
+        }
+        var ctx = canvas.getContext( '2d' );
+
+        var color = stroke.color;
+        if( color == 'transparent' ){
+          ctx.globalCompositeOperation = 'destination-out';
+        }else{
+          ctx.globalCompositeOperation = 'source-over';
+        }
+
+        ctx.beginPath();
+        ctx.lineWidth = stroke.width;
+        ctx.lineCap = 'round';
+        ctx.moveTo( stroke.xys[j-1][0], stroke.xys[j-1][1] );
+        ctx.lineTo( stroke.xys[j][0], stroke.xys[j][1] );
+        if( color != 'transparent' ){
+          ctx.strokeStyle = color;
+        }
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function deleteImage( id ){
+  if( window.confirm( "<%= __('common.deleteimage.confirm1') %>" + id + "<%= __('common.deleteimage.confirm2') %>" ) ){
+    $.ajax({
+      type: "DELETE",
+      url: "./image/" + id,
+      success: function( data ){
+        location.href = '/';
+      },
+      error: function( jqXHR, textStatus, errorThrown ){
+        console.log( textStatus + " : " + errorThrown );
+      }
+    });
+  }
+}
+
+//. #3
+function migrateFrom(){
+  if( window.confirm( "<%= __('common.migrate.from.confirm') %>" ) ){
+    var uuid_to = window.prompt( "<%= __('common.migrate.uuid.from') %>", "" );
+    if( uuid_to ){
+      if( window.confirm( "<%= __('common.migrate.uuid.from.confirm') %> : " + uuid_to ) ){
+        var uuid_from = uuid;
+        $.ajax({
+          type: "POST",
+          url: "./migrate_from",
+          data: { from_uuid: uuid_from, to_uuid: uuid_to },
+          success: function( data ){
+            location.href = '/';
+          },
+          error: function( jqXHR, textStatus, errorThrown ){
+            console.log( textStatus + " : " + errorThrown );
+          }
+        });
+      }
+    }
+  }
+}
+
+function migrateTo(){
+  if( window.confirm( "<%= __('common.migrate.to.confirm') %>" ) ){
+    var uuid_from = window.prompt( "<%= __('common.migrate.uuid.to') %>", "" );
+    if( uuid_from ){
+      if( window.confirm( "<%= __('common.migrate.uuid.to.confirm') %> : " + uuid_from ) ){
+        var uuid_to = uuid;
+        $.ajax({
+          type: "POST",
+          url: "./migrate_to",
+          data: { from_uuid: uuid_from, to_uuid: uuid_to },
+          success: function( data ){
+            location.href = '/';
+          },
+          error: function( jqXHR, textStatus, errorThrown ){
+            console.log( textStatus + " : " + errorThrown );
+          }
+        });
+      }
+    }
+  }
+}
+
+function generateSiritori(){
+  var ids = [];
+  var titles = [];
+  $('input:checkbox[name="history_body_check"]:checked').each( function(){
+    var tmp = $(this).val().split( ':' );
+    if( tmp.length == 2 ){
+      ids.push( tmp[0] );
+      titles.push( tmp[1] );
+    }
+  });
+  console.log( ids, titles );
+
+  //. titles がしりとりになるように ids を並べ替える
+  //. - カタカナはひらがなに変換する
+  //. - 漢字は漢字のまま
+  //. - 「不可能」という可能性もある
+
+  //. (1) 各語ごとに前にくる可能性のある候補がいくつあるか？
+  var prev_0 = 0;
+  var prevs = [];
+  for( var i = 0; i < titles.length; i ++ ){
+    var cnt = 0;
+    for( var j = 0; j < titles.length; j ++ ){
+      if( i != j && titles[i].charAt( 0 ) == titles[j].charAt( titles[j].length - 1 ) ){
+        cnt ++;
+      }
+    }
+    if( cnt == 0 ){
+      prev_0 ++;
+    }
+    prevs.push( cnt );
+  }
+
+  if( prev_0 > 1 ){
+    //. 不可能
+  }else{
+    //. (2) 各語ごとに後ろに続く候補がいくつあるか？
+    var next_0 = 0;
+    var nexts = [];
+    for( var i = 0; i < titles.length; i ++ ){
+      var cnt = 0;
+      for( var j = 0; j < titles.length; j ++ ){
+        if( i != j && titles[i].charAt( titles[i].length - 1 ) == titles[j].charAt( 0 ) ){
+          cnt ++;
+        }
+      }
+      if( cnt == 0 ){
+        next_0 ++;
+      }
+      nexts.push( cnt );
+    }
+
+    if( next_0 > 1 ){
+      //. 不可能
+    }else{
+    }
+  }
+}
+
+
+function generateUUID(){
+  //. Cookie の値を調べて、有効ならその値で、空だった場合は生成する
+  var did = null;
+  cookies = document.cookie.split(";");
+  for( var i = 0; i < cookies.length; i ++ ){
+    var str = cookies[i].split("=");
+    var une = unescape( str[0] );
+    if( une == " deviceid" || une == "deviceid" ){
+      did = unescape( unescape( str[1] ) );
+    }
+  }
+
+  if( did == null ){
+    var s = 1000;
+    did = ( new Date().getTime().toString(16) ) + Math.floor( s * Math.random() ).toString(16);
+  }
+
+  // https://qiita.com/yossaito/items/6ffb1b8bb3f9d91107b8
+  //var maxage = 60 * 60 * 24 * 7; //. 7 days(less than 8 days https://qiita.com/yossaito/items/6ffb1b8bb3f9d91107b8)
+  //document.cookie = ( "deviceid=" + did + '; max-age=' + maxage );
+
+  //.document.cookie = ( "deviceid=" + did + '; path=/' );
+
+  var dt = ( new Date() );
+  var ts = dt.getTime();
+  ts += 1000 * 60 * 60 * 24 * 365 * 100; //. 100 years
+  dt.setTime( ts );
+  var value = ( "deviceid=" + did + '; expires=' + dt.toUTCString() + '; path=/' );
+  if( isMobileSafari() ){
+    $.ajax({
+      url: '/setcookie',
+      type: 'POST',
+      data: { value: value },
+      success: function( r ){
+        //console.log( 'success: ', r );
+      },
+      error: function( e0, e1, e2 ){
+        //console.log( 'error: ', e1, e2 );
+      }
+    });
+  }else{
+    document.cookie = ( value );
+    //console.log( 'value: ', value );
+  }
+
+  return did;
+}
+
+function timestamp2datetime( ts ){
+  if( ts ){
+    var dt = new Date( ts );
+    var yyyy = dt.getFullYear();
+    var mm = dt.getMonth() + 1;
+    var dd = dt.getDate();
+    var hh = dt.getHours();
+    var nn = dt.getMinutes();
+    var ss = dt.getSeconds();
+    var datetime = yyyy + '-' + ( mm < 10 ? '0' : '' ) + mm + '-' + ( dd < 10 ? '0' : '' ) + dd
+      + ' ' + ( hh < 10 ? '0' : '' ) + hh + ':' + ( nn < 10 ? '0' : '' ) + nn + ':' + ( ss < 10 ? '0' : '' ) + ss;
+    return datetime;
+  }else{
+    return "";
+  }
+}
+
+function timestamp2datetime2( ts ){
+  //console.log( 'ts', ts );
+  if( ts ){
+    var dt = new Date();
+    dt.setTime( ts );
+    var yyyy = dt.getFullYear();
+    var mm = dt.getMonth() + 1;
+    var dd = dt.getDate();
+    var hh = dt.getHours();
+    var nn = dt.getMinutes();
+    var ss = dt.getSeconds();
+    var datetime = yyyy + '-' + ( mm < 10 ? '0' : '' ) + mm + '-' + ( dd < 10 ? '0' : '' ) + dd;
+      //+ 'T' + ( hh < 10 ? '0' : '' ) + hh + ':' + ( nn < 10 ? '0' : '' ) + nn + ':' + ( ss < 10 ? '0' : '' ) + ss; //. #17
+    //console.log( 'datetime', datetime );
+    return datetime;
+  }else{
+    return "";
+  }
+}
+
+function kanaToHira( kana ) {
+  return kana.replace(/[\u30a1-\u30f6]/g, function(match) {
+    var chr = match.charCodeAt(0) - 0x60;
+    return String.fromCharCode(chr);
+  });
+}
+
+//. #15
+function editModalClose(){
+  $('body').removeClass( 'modal-open' );
+  $('.modal-backdrop').remove();
+  $('#editModal').modal( 'hide' );
+}
+</script>
+</body>
+</html>
